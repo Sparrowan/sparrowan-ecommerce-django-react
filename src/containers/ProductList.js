@@ -1,5 +1,6 @@
 import React from "react";
 import axios from "axios";
+import { connect } from "react-redux";
 import {
   Button,
   Container,
@@ -14,6 +15,7 @@ import {
 } from "semantic-ui-react";
 import { productListURL, addToCartURL } from "../constants";
 import { authAxios } from "../utils";
+import { fetchCart } from "../store/actions/cart";
 
 class ProductList extends React.Component {
   state = {
@@ -41,7 +43,8 @@ class ProductList extends React.Component {
       .post(addToCartURL, { slug })
       .then(res => {
         console.log(res.data);
-        // update the cart count
+        // update the cart count without refreshing page
+        this.props.fetchCart();
         this.setState({ loading: false });
       })
       .catch(err => {
@@ -115,4 +118,14 @@ class ProductList extends React.Component {
   }
 }
 
-export default ProductList;
+// Able to update cart without refreshing the whole page
+const mapDispatchToProps = dispatch => {
+  return {
+    fetchCart: () => dispatch(fetchCart())
+  };
+};
+
+export default connect(
+  null,
+  mapDispatchToProps
+)(ProductList);

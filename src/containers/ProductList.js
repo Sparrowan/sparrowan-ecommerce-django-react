@@ -1,6 +1,6 @@
 import React from "react";
-import axios from "axios";
 import { connect } from "react-redux";
+import axios from "axios";
 import {
   Button,
   Container,
@@ -14,8 +14,8 @@ import {
   Segment
 } from "semantic-ui-react";
 import { productListURL, addToCartURL } from "../constants";
-import { authAxios } from "../utils";
 import { fetchCart } from "../store/actions/cart";
+import { authAxios } from "../utils";
 
 class ProductList extends React.Component {
   state = {
@@ -29,7 +29,6 @@ class ProductList extends React.Component {
     axios
       .get(productListURL)
       .then(res => {
-        console.log(res.data);
         this.setState({ data: res.data, loading: false });
       })
       .catch(err => {
@@ -42,9 +41,7 @@ class ProductList extends React.Component {
     authAxios
       .post(addToCartURL, { slug })
       .then(res => {
-        console.log(res.data);
-        // update the cart count without refreshing page
-        this.props.fetchCart();
+        this.props.refreshCart();
         this.setState({ loading: false });
       })
       .catch(err => {
@@ -74,11 +71,19 @@ class ProductList extends React.Component {
         )}
         <Item.Group divided>
           {data.map(item => {
+            console.log(item);
             return (
               <Item key={item.id}>
                 <Item.Image src={item.image} />
                 <Item.Content>
-                  <Item.Header as="a">{item.title}</Item.Header>
+                  <Item.Header
+                    as="a"
+                    onClick={() =>
+                      this.props.history.push(`/products/${item.id}`)
+                    }
+                  >
+                    {item.title}
+                  </Item.Header>
                   <Item.Meta>
                     <span className="cinema">{item.category}</span>
                   </Item.Meta>
@@ -118,10 +123,9 @@ class ProductList extends React.Component {
   }
 }
 
-// Able to update cart without refreshing the whole page
 const mapDispatchToProps = dispatch => {
   return {
-    fetchCart: () => dispatch(fetchCart())
+    refreshCart: () => dispatch(fetchCart())
   };
 };
 

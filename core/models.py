@@ -9,7 +9,8 @@ from django_countries.fields import CountryField
 CATEGORY_CHOICES = (
     ('S', 'Shirt'),
     ('SW', 'Sport wear'),
-    ('OW', 'Outwear')
+    ('OW', 'Outwear'),
+    ('PN', 'Pants')
 )
 
 LABEL_CHOICES = (
@@ -61,6 +62,33 @@ class Item(models.Model):
         return reverse("core:remove-from-cart", kwargs={
             'slug': self.slug
         })
+
+
+class Variation(models.Model):
+    item = models.ForeignKey(Item, on_delete=models.CASCADE)
+    name = models.CharField(max_length=50)  # size
+
+    class Meta:
+        unique_together = (
+            ('item', 'name')
+        )
+
+    def __str__(self):
+        return self.name
+
+
+class ItemVariation(models.Model):
+    variation = models.ForeignKey(Variation, on_delete=models.CASCADE)
+    value = models.CharField(max_length=50)  # S, M, L
+    attachment = models.ImageField(blank=True)
+
+    class Meta:
+        unique_together = (
+            ('variation', 'value')
+        )
+
+    def __str__(self):
+        return self.value
 
 
 class OrderItem(models.Model):

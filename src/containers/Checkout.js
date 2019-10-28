@@ -153,6 +153,8 @@ class CheckoutForm extends Component {
       });
   };
 
+
+  //Stripe
   submit = ev => {
     ev.preventDefault();
     this.setState({ loading: true });

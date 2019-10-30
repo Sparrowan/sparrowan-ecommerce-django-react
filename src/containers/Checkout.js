@@ -153,8 +153,6 @@ class CheckoutForm extends Component {
       });
   };
 
-
-  //Stripe
   submit = ev => {
     ev.preventDefault();
     this.setState({ loading: true });
@@ -246,8 +244,3 @@ const WrappedForm = () => (
 );
 
 export default WrappedForm;
-
-/*
-1. Adding the order items in the payment view as a summary
-2. Adding discount code form in checkout view
-*/

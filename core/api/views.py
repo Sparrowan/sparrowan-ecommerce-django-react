@@ -5,7 +5,10 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404
 from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
-from rest_framework.generics import ListAPIView, RetrieveAPIView, CreateAPIView
+from rest_framework.generics import (
+    ListAPIView, RetrieveAPIView, CreateAPIView,
+    UpdateAPIView, DestroyAPIView
+)
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -35,6 +38,42 @@ class ItemDetailView(RetrieveAPIView):
     permission_classes = (AllowAny,)
     serializer_class = ItemDetailSerializer
     queryset = Item.objects.all()
+
+
+class OrderQuantityUpdateView(APIView):
+    def post(self, request, *args, **kwargs):
+        slug = request.data.get('slug', None)
+        if slug is None:
+            return Response({"message": "Invalid data"}, status=HTTP_400_BAD_REQUEST)
+        item = get_object_or_404(Item, slug=slug)
+        order_qs = Order.objects.filter(
+            user=request.user,
+            ordered=False
+        )
+        if order_qs.exists():
+            order = order_qs[0]
+            # check if the order item is in the order
+            if order.items.filter(item__slug=item.slug).exists():
+                order_item = OrderItem.objects.filter(
+                    item=item,
+                    user=request.user,
+                    ordered=False
+                )[0]
+                if order_item.quantity > 1:
+                    order_item.quantity -= 1
+                    order_item.save()
+                else:
+                    order.items.remove(order_item)
+                return Response(status=HTTP_200_OK)
+            else:
+                return Response({"message": "This item was not in your cart"}, status=HTTP_400_BAD_REQUEST)
+        else:
+            return Response({"message": "You do not have an active order"}, status=HTTP_400_BAD_REQUEST)
+
+
+class OrderItemDeleteView(DestroyAPIView):
+    permission_classes = (IsAuthenticated, )
+    queryset = OrderItem.objects.all()
 
 
 class AddToCartView(APIView):
@@ -236,4 +275,15 @@ class AddressListView(ListAPIView):
 class AddressCreateView(CreateAPIView):
     permission_classes = (IsAuthenticated, )
     serializer_class = AddressSerializer
+    queryset = Address.objects.all()
+
+
+class AddressUpdateView(UpdateAPIView):
+    permission_classes = (IsAuthenticated, )
+    serializer_class = AddressSerializer
+    queryset = Address.objects.all()
+
+
+class AddressDeleteView(DestroyAPIView):
+    permission_classes = (IsAuthenticated, )
     queryset = Address.objects.all()
